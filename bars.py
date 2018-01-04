@@ -1,6 +1,7 @@
 import json
 import os
 from math import radians, cos, sin, asin, sqrt
+import sys
 
 
 def load_data(json_filepath):
@@ -12,27 +13,27 @@ def load_data(json_filepath):
 
 def get_biggest_bar(bars_list):
     return max(
-        bars_list["features"],
-        key=lambda feature:
-        feature["properties"]["Attributes"]["SeatsCount"]
+        bars_list,
+        key=lambda bar:
+        bar["properties"]["Attributes"]["SeatsCount"]
     )
 
 
 def get_smallest_bar(bars_list):
     return min(
-        bars_list["features"],
-        key=lambda feature:
-        feature["properties"]["Attributes"]["SeatsCount"]
+        bars_list,
+        key=lambda bar:
+        bar["properties"]["Attributes"]["SeatsCount"]
     )
 
 
 def get_closest_bar(bars_list, longitude, latitude):
     return min(
-        bars_list["features"],
-        key=lambda feature:
+        bars_list,
+        key=lambda bar:
         get_distance_between_points(
-            feature["geometry"]["coordinates"][1],
-            feature["geometry"]["coordinates"][0],
+            bar["geometry"]["coordinates"][1],
+            bar["geometry"]["coordinates"][0],
             longitude,
             latitude
         )
@@ -50,46 +51,57 @@ def print_bar_info(bar, message):
 
 def get_distance_between_points(lon1, lat1, lon2, lat2):
     """
+    https://stackoverflow.com/questions/15736995/
+    how-can-i-quickly-estimate-the-distance-
+    between-two-latitude-longitude-points
+
     Calculate the great circle distance between two points
     on the earth (specified in decimal degrees)
     """
-    # convert decimal degrees to radians
     lon1, lat1, lon2, lat2 = map(radians, [lon1, lat1, lon2, lat2])
     # haversine formula
     dlon = lon2 - lon1
     dlat = lat2 - lat1
     a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
     c = 2 * asin(sqrt(a))
-    # Radius of earth in kilometers is 6371
-    km = 6371 * c
+    rad_of_earth = 6371
+    km = rad_of_earth * c
     return km
 
 
 def enter_coordinates():
-    print("Введите через запятую ваши координаты. Их можно узнать я Яндекс картах")
-    user_input = input()
-    if user_input != "":
-        longitude, latitude = user_input.split(",")
-        return float(longitude), float(latitude)
+    longitude = input("Введите ваши координаты.\nДолгота:\n")
+    latitude = input("Введите ваши координаты.\nШирота:\n")
+    if longitude != "" and latitude != "":
+        try:
+            return float(longitude), float(latitude)
+        except ValueError:
+            print("Ошибка в переданных координатах, попробуйте еще раз")
+            return None, None
     else:
         print("Для работы программы нужно ввести ваши координаты")
-        return None
+        return None, None
 
 
 if __name__ == "__main__":
-    longitude, latitude = enter_coordinates()
+    if len(sys.argv) == 2:
+        content = load_data(sys.argv[1])
+        bars_list = content["features"]
 
-    bars_list = load_data("bars.json")
+        longitude, latitude = enter_coordinates()
 
-    biggest_bar = get_biggest_bar(bars_list)
-    smallest_bar = get_smallest_bar(bars_list)
-    closest_bar = get_closest_bar(
-        bars_list,
-        longitude,
-        latitude
-    )
+        if longitude is not None and latitude is not None:
+            biggest_bar = get_biggest_bar(bars_list)
+            smallest_bar = get_smallest_bar(bars_list)
+            closest_bar = get_closest_bar(
+                bars_list,
+                longitude,
+                latitude
+            )
 
-    print_bar_info(biggest_bar, "Вот самый большой бар:")
-    print_bar_info(smallest_bar, "Вот самый маленький бар:")
-    print_bar_info(closest_bar, "Вот ближайший к вам бар:")
+            print_bar_info(biggest_bar, "\nВот самый большой бар:")
+            print_bar_info(smallest_bar, "Вот самый маленький бар:")
+            print_bar_info(closest_bar, "Вот ближайший к вам бар:")
+    else:
+        print("Для работы скрипта нужно указать путь к файлу со списком баров")
 
