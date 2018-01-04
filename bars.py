@@ -12,17 +12,13 @@ def load_data(json_filepath):
 
 
 def get_biggest_bar(bars_list):
-    return max(
-        bars_list,
-        key=lambda bar:
+    return max(bars_list, key=lambda bar:
         bar["properties"]["Attributes"]["SeatsCount"]
     )
 
 
 def get_smallest_bar(bars_list):
-    return min(
-        bars_list,
-        key=lambda bar:
+    return min(bars_list, key=lambda bar:
         bar["properties"]["Attributes"]["SeatsCount"]
     )
 
@@ -59,49 +55,47 @@ def get_distance_between_points(lon1, lat1, lon2, lat2):
     on the earth (specified in decimal degrees)
     """
     lon1, lat1, lon2, lat2 = map(radians, [lon1, lat1, lon2, lat2])
-    # haversine formula
     dlon = lon2 - lon1
     dlat = lat2 - lat1
     a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
     c = 2 * asin(sqrt(a))
-    rad_of_earth = 6371
-    km = rad_of_earth * c
-    return km
+    earth_radius = 6371
+    distance = earth_radius * c
+    return distance
 
 
 def enter_coordinates():
     longitude = input("Введите ваши координаты.\nДолгота:\n")
     latitude = input("Введите ваши координаты.\nШирота:\n")
-    if longitude != "" and latitude != "":
-        try:
-            return float(longitude), float(latitude)
-        except ValueError:
-            print("Ошибка в переданных координатах, попробуйте еще раз")
-            return None, None
-    else:
-        print("Для работы программы нужно ввести ваши координаты")
+    try:
+        return float(longitude), float(latitude)
+    except ValueError:
+        print("Ошибка в переданных координатах, попробуйте еще раз")
         return None, None
 
 
 if __name__ == "__main__":
     if len(sys.argv) == 2:
-        content = load_data(sys.argv[1])
-        bars_list = content["features"]
+        json_data = load_data(sys.argv[1])
+        if json_data is not None:
+            bars_list = json_data["features"]
 
-        longitude, latitude = enter_coordinates()
+            longitude, latitude = enter_coordinates()
 
-        if longitude is not None and latitude is not None:
-            biggest_bar = get_biggest_bar(bars_list)
-            smallest_bar = get_smallest_bar(bars_list)
-            closest_bar = get_closest_bar(
-                bars_list,
-                longitude,
-                latitude
-            )
+            if longitude is not None and latitude is not None:
+                biggest_bar = get_biggest_bar(bars_list)
+                smallest_bar = get_smallest_bar(bars_list)
+                closest_bar = get_closest_bar(
+                    bars_list,
+                    longitude,
+                    latitude
+                )
 
-            print_bar_info(biggest_bar, "\nВот самый большой бар:")
-            print_bar_info(smallest_bar, "Вот самый маленький бар:")
-            print_bar_info(closest_bar, "Вот ближайший к вам бар:")
+                print_bar_info(biggest_bar, "\nВот самый большой бар:")
+                print_bar_info(smallest_bar, "Вот самый маленький бар:")
+                print_bar_info(closest_bar, "Вот ближайший к вам бар:")
+        else:
+            print("Введен неправильный путь к файлу")
     else:
         print("Для работы скрипта нужно указать путь к файлу со списком баров")
 
