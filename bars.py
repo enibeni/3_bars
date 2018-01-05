@@ -1,7 +1,6 @@
 import json
 import os
 from math import radians, cos, sin, asin, sqrt
-
 import sys
 
 
@@ -80,14 +79,12 @@ if __name__ == "__main__":
     if len(sys.argv) == 2:
         json_data = load_data(sys.argv[1])
     else:
-        print("Для работы скрипта нужно указать путь к файлу со списком баров")
-        sys.exit(1)
+        sys.exit("Для работы скрипта нужно указать путь к файлу со списком баров")
 
     if json_data is not None:
         bars_list = json_data["features"]
     else:
-        print("Введен неправильный путь к файлу")
-        sys.exit(1)
+        sys.exit("Введен неправильный путь к файлу")
 
     longitude, latitude = enter_coordinates()
 
